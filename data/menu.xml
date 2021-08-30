@@ -69,6 +69,7 @@
 				<item level="0" text="Network" entryID="network_setup"><screen module="NetworkSetup" screen="NetworkAdapterSelection"/></item>
 				<item level="1" text="Input devices" entryID="input_device_setup"><screen module="InputDeviceSetup" screen="InputDeviceSelection"/></item>
 				<item entryID="lcd_setup" requires="Display"><setup level="1" id="lcd"/></item>
+				<item entryID="led_setup" level="1" text="LED Setup" weight="15"><setup id="ledsetup" /></item>
 				<item entryID="keyboard_setup" text="Keyboard"><setup id="keyboard"/></item>
 				<item level="2" text="Recording paths" entryID="RecordPaths"><screen module="RecordPaths" screen="RecordPathsSettings"/></item>
 				<item level="1" text="Hotkey" entryID="hotkey_setup"><screen module="Hotkey" screen="HotkeySetup"/></item>
@@ -96,5 +97,6 @@
 			<item text="Multiboot image selector" entryID="multiboot" requires="canMultiBoot"><screen module="FlashImage" screen="MultibootSelection">1</screen></item>
 			<item text="Deep standby" requires="DeepstandbySupport" entryID="deep_standby"><screen module="Standby" screen="TryQuitMainloop">1</screen></item>
 			<item text="Shutdown" requires="!DeepstandbySupport" entryID="deep_standby"><screen module="Standby" screen="TryQuitMainloop">1</screen></item>
+ 			<item entryID="maintenance_mode" level="0" text="Recovery Mode" weight="55" requires="RecoveryMode"><screen module="Standby" screen="TryQuitMainloop">16</screen></item>
 		</menu>
 </menu>
