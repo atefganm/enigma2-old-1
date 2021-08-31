@@ -3630,3 +3630,207 @@ class InfoBarHDMI:
 				self.session.nav.playService(slist.servicelist.getCurrent())
 			else:
 				self.session.nav.playService(self.cur_service)
+
+class InfoBarHdmi2:
+	def __init__(self):
+		self.hdmi_enabled = False
+		self.hdmi_enabled_full = False
+		self.hdmi_enabled_pip = False
+
+		if SystemInfo["HasHDMIin"] or SystemInfo["HasHDMIinFHD"]:
+			if not self.hdmi_enabled_full:
+				self.addExtension((self.getHDMIInFullScreen, self.HDMIInFull, lambda: True), "blue")
+			if not self.hdmi_enabled_pip:
+				self.addExtension((self.getHDMIInPiPScreen, self.HDMIInPiP, lambda: True), "green")
+		self["HDMIActions"] = HelpableActionMap(self, "InfobarHDMIActions",
+			{
+				"HDMIin": (self.HDMIIn, _("Switch to HDMI in mode")),
+				"HDMIinLong": (self.HDMIInLong, _("Switch to HDMI in mode")),
+			}, prio=2)
+
+	def HDMIInLong(self):
+		if self.LongButtonPressed:
+			if not hasattr(self.session, 'pip') and not self.session.pipshown:
+				self.session.pip = self.session.instantiateDialog(PictureInPicture)
+				self.session.pip.playService(hdmiInServiceRef())
+				self.session.pip.show()
+				self.session.pipshown = True
+				self.session.pip.servicePath = self.servicelist.getCurrentServicePath()
+			else:
+				curref = self.session.pip.getCurrentService()
+				if curref and curref.type != eServiceReference.idServiceHDMIIn:
+					self.session.pip.playService(hdmiInServiceRef())
+					self.session.pip.servicePath = self.servicelist.getCurrentServicePath()
+				else:
+					self.session.pipshown = False
+					del self.session.pip
+
+	def HDMIIn(self):
+		if not self.LongButtonPressed:
+			slist = self.servicelist
+			curref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+			if curref and curref.type != eServiceReference.idServiceHDMIIn:
+				self.session.nav.playService(hdmiInServiceRef())
+			else:
+				self.session.nav.playService(slist.servicelist.getCurrent())
+
+	def getHDMIInFullScreen(self):
+		if not self.hdmi_enabled_full:
+			return _("Turn on HDMI-IN Full screen mode")
+		else:
+			return _("Turn off HDMI-IN Full screen mode")
+
+	def getHDMIInPiPScreen(self):
+		if not self.hdmi_enabled_pip:
+			return _("Turn on HDMI-IN PiP mode")
+		else:
+			return _("Turn off HDMI-IN PiP mode")
+
+	def HDMIInPiP(self):
+		if HardwareInfo().get_device_model() in ('dm7080', 'dm820', 'dm900', 'dm920', 'dreamone', 'dreamtwo'):
+			f = open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor", "r")
+			check = f.read()
+			f.close()
+			if check.startswith("off"):
+				f = open("/proc/stb/audio/hdmi_rx_monitor", "w")
+				f.write("on")
+				f.close()
+				f = open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor", "w")
+				f.write("on")
+				f.close()
+			else:
+				f = open("/proc/stb/audio/hdmi_rx_monitor", "w")
+				f.write("off")
+				f.close()
+				f = open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor", "w")
+				f.write("off")
+				f.close()
+		else:
+			if not hasattr(self.session, 'pip') and not self.session.pipshown:
+				self.hdmi_enabled_pip = True
+				self.session.pip = self.session.instantiateDialog(PictureInPicture)
+				self.session.pip.playService(hdmiInServiceRef())
+				self.session.pip.show()
+				self.session.pipshown = True
+				self.session.pip.servicePath = self.servicelist.getCurrentServicePath()
+			else:
+				curref = self.session.pip.getCurrentService()
+				if curref and curref.type != eServiceReference.idServiceHDMIIn:
+					self.hdmi_enabled_pip = True
+					self.session.pip.playService(hdmiInServiceRef())
+					self.session.pip.servicePath = self.servicelist.getCurrentServicePath()
+				else:
+					self.hdmi_enabled_pip = False
+					self.session.pipshown = False
+					del self.session.pip
+
+	def HDMIInFull(self):
+		if HardwareInfo().get_device_model() in ('dm7080', 'dm820', 'dm900', 'dm920', 'dreamone', 'dreamtwo'):
+			f = open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor", "r")
+			check = f.read()
+			f.close()
+			if check.startswith("off"):
+				f = open("/proc/stb/video/videomode", "r")
+				self.oldvideomode = f.read()
+				f.close()
+				f = open("/proc/stb/video/videomode_50hz", "r")
+				self.oldvideomode_50hz = f.read()
+				f.close()
+				f = open("/proc/stb/video/videomode_60hz", "r")
+				self.oldvideomode_60hz = f.read()
+				f.close()
+				f = open("/proc/stb/video/videomode", "w")
+				if HardwareInfo().get_device_model() in ('dm900', 'dm920', 'dreamone', 'dreamtwo'):
+					f.write("1080p")
+				else:
+					f.write("720p")
+				f.close()
+				f = open("/proc/stb/audio/hdmi_rx_monitor", "w")
+				f.write("on")
+				f.close()
+				f = open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor", "w")
+				f.write("on")
+				f.close()
+			else:
+				f = open("/proc/stb/audio/hdmi_rx_monitor", "w")
+				f.write("off")
+				f.close()
+				f = open("/proc/stb/hdmi-rx/0/hdmi_rx_monitor", "w")
+				f.write("off")
+				f.close()
+				f = open("/proc/stb/video/videomode", "w")
+				f.write(self.oldvideomode)
+				f.close()
+				f = open("/proc/stb/video/videomode_50hz", "w")
+				f.write(self.oldvideomode_50hz)
+				f.close()
+				f = open("/proc/stb/video/videomode_60hz", "w")
+				f.write(self.oldvideomode_60hz)
+				f.close()
+		else:
+			slist = self.servicelist
+			curref = self.session.nav.getCurrentlyPlayingServiceOrGroup()
+			if curref and curref.type != eServiceReference.idServiceHDMIIn:
+				self.hdmi_enabled_full = True
+				self.session.nav.playService(hdmiInServiceRef())
+			else:
+				self.hdmi_enabled_full = False
+				self.session.nav.playService(slist.servicelist.getCurrent())
+
+#########################################################################################
+# handle bsod (python crashes) and show information after crash                         #
+#########################################################################################
+
+
+from enigma import getBsodCounter, resetBsodCounter
+
+
+class InfoBarHandleBsod:
+	def __init__(self):
+		self.lastBsod = 0
+		self.infoBsodIsShown = False
+		self.lastestBsodWarning = False
+		self.checkBsodTimer = eTimer()
+		self.checkBsodTimer.callback.append(self.checkBsodCallback)
+		self.checkBsodTimer.start(1000, True)
+		config.crash.bsodpython_ready.setValue(True)
+
+	def checkBsodCallback(self):
+		self.checkBsodTimer.start(1000, True)
+		if Screens.Standby.inStandby or self.infoBsodIsShown:
+			return
+		bsodcnt = getBsodCounter()
+		if config.crash.bsodpython.value and self.lastBsod < bsodcnt:
+			maxbs = int(config.crash.bsodmax.value) or 100
+			writelog = bsodcnt == 1 or not bsodcnt > int(config.crash.bsodhide.value) or bsodcnt >= maxbs
+			txt = _("Your Receiver has a Software problem detected. Since the last reboot it has occurred %d times.\n") % bsodcnt
+			txt += _("(Attention: There will be a restart after %d crashes.)") % maxbs
+			if writelog:
+				txt += "\n" + "-" * 80 + "\n"
+				txt += _("A crashlog was %s created in '%s'") % ((_('not'), '')[int(writelog)], config.crash.debugPath.value)
+			#if not writelog:
+			#	txt += "\n" + "-"*80 + "\n"
+			#	txt += _("(It is set that '%s' crash logs are displayed and written.\nInfo: It will always write the first, last but one and lastest crash log.)") % str(int(config.crash.bsodhide.value) or _('never'))
+			if bsodcnt >= maxbs:
+				txt += "\n" + "-" * 80 + "\n"
+				txt += _("Warning: This is the last crash before an automatic restart is performed.\n")
+				txt += _("Should the crash counter be reset to prevent a restart?")
+				self.lastestBsodWarning = True
+			try:
+				self.session.openWithCallback(self.infoBsodCallback, MessageBox, txt, type=MessageBox.TYPE_ERROR, default=False, close_on_any_key=not self.lastestBsodWarning, showYESNO=self.lastestBsodWarning)
+				self.infoBsodIsShown = True
+			except Exception, e:
+				#print "[InfoBarHandleBsod] Exception:", e
+				self.checkBsodTimer.stop()
+				self.checkBsodTimer.start(5000, True)
+				self.infoBsodCallback(False)
+				raise
+		self.lastBsod = bsodcnt
+
+	def infoBsodCallback(self, ret):
+		if ret and self.lastestBsodWarning:
+			resetBsodCounter()
+		self.infoBsodIsShown = False
+		self.lastestBsodWarning = False
+
+#########################################################################################

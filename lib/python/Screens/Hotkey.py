@@ -188,7 +188,9 @@ def getHotkeyFunctions():
 	hotkey.functions.append((_("Activate HbbTV (Redbutton)"), "Infobar/activateRedButton", "InfoBar"))
 	if SystemInfo["HasHDMIin"]:
 		hotkey.functions.append((_("Toggle HDMI In"), "Infobar/HDMIIn", "InfoBar"))
-	if SystemInfo["LcdLiveTV"]:
+	if SystemInfo["HasHDMIinFHD"]:
+		hotkey.functions.append((_("Toggle HDMI-In full screen"), "Infobar/HDMIInFull", "InfoBar"))
+		hotkey.functions.append((_("Toggle HDMI-In PiP"), "Infobar/HDMIInPiP", "InfoBar"))
 		hotkey.functions.append((_("Toggle LCD LiveTV"), "Infobar/ToggleLCDLiveTV", "InfoBar"))
 	hotkey.functions.append((_("Toggle dashed flickering line for this service"), "Infobar/ToggleHideVBI", "InfoBar"))
 	hotkey.functions.append((_("Do nothing"), "Void", "InfoBar"))
@@ -207,6 +209,8 @@ def getHotkeyFunctions():
 	for plugin in plugins.getPluginsForMenu("scan"):
 		hotkey.functions.append((plugin[0], "MenuPlugin/scan/" + plugin[2], "Scanning"))
 	hotkey.functions.append((_("Network"), "Module/Screens.NetworkSetup/NetworkAdapterSelection", "Setup"))
+	hotkey.functions.append((_("Skin"), "Module/Screens.SkinSelector/SkinSelector", "Setup"))
+	hotkey.functions.append((_("Display skin"), "Module/Screens.SkinSelector/LcdSkinSelector", "Setup"))
 	hotkey.functions.append((_("Plugin Browser"), "Module/Screens.PluginBrowser/PluginBrowser", "Setup"))
 	hotkey.functions.append((_("Sleeptimer edit"), "Module/Screens.SleepTimerEdit/SleepTimerEdit", "Setup"))
 	hotkey.functions.append((_("Channel Info"), "Module/Screens.ServiceInfo/ServiceInfo", "Setup"))
@@ -231,6 +235,7 @@ def getHotkeyFunctions():
 	hotkey.functions.append((_("Harddisk Setup"), "Setup/harddisk", "Setup"))
 	hotkey.functions.append((_("Subtitles Settings"), "Setup/subtitlesetup", "Setup"))
 	hotkey.functions.append((_("Language"), "Module/Screens.LanguageSelection/LanguageSelection", "Setup"))
+	hotkey.functions.append((_("OScam/Ncam Info"), "Module/Screens.OScamInfo/OscamInfoMenu", "Plugins"))
 	hotkey.functions.append((_("Memory Info"), "Module/Screens.About/MemoryInfo", "Setup"))
 	if SystemInfo["canMultiBoot"]:
 		hotkey.functions.append((_("Multiboot image selector"), "Module/Screens.FlashImage/MultibootSelection", "Setup"))
