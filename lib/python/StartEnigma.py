@@ -30,7 +30,7 @@ from Screens.SimpleSummary import SimpleSummary
 from sys import stdout
 
 profile("Bouquets")
-from Components.config import config, configfile, ConfigText, ConfigYesNo, ConfigInteger, ConfigSelection, NoSave
+from Components.config import config, configfile, ConfigText, ConfigYesNo, ConfigInteger, NoSave
 config.misc.load_unlinked_userbouquets = ConfigYesNo(default=True)
 
 
@@ -112,13 +112,6 @@ except ImportError:
 		enigma.runMainloop()
 
 profile("LOAD:Plugin")
-
-from twisted.python import log
-config.misc.enabletwistedlog = ConfigYesNo(default=False)
-if config.misc.enabletwistedlog.value == True:
-	log.startLogging(open('/tmp/twisted.log', 'w'))
-else:
-	log.startLogging(sys.stdout)
 
 # initialize autorun plugins and plugin menu entries
 from Components.PluginComponent import plugins
@@ -316,14 +309,6 @@ class Session:
 			# ...unless it's the very first screen.
 
 		self.pushCurrent()
-		if config.crash.bsodpython.value:
-			try:
-				dlg = self.current_dialog = self.instantiateDialog(screen, *arguments, **kwargs)
-			except:
-				self.popCurrent()
-				raise
-				return 'config.crash.bsodpython.value=True'
-		else:
 		dlg = self.current_dialog = self.instantiateDialog(screen, *arguments, **kwargs)
 		dlg.isTmp = True
 		dlg.callback = None
@@ -458,10 +443,6 @@ from Screens.Ci import CiHandler
 profile("Load:VolumeControl")
 from Components.VolumeControl import VolumeControl
 
-profile("Load:StackTracePrinter")
-from Components.StackTrace import StackTracePrinter
-StackTracePrinterInst = StackTracePrinter()
-
 
 def runScreenTest():
 	config.misc.startCounter.value += 1
@@ -577,10 +558,6 @@ import Components.InputDevice
 Components.InputDevice.InitInputDevices()
 import Components.InputHotplug
 
-profile("SetupDevices")
-import Components.SetupDevices
-Components.SetupDevices.InitSetupDevices()
-
 profile("AVSwitch")
 import Components.AVSwitch
 Components.AVSwitch.InitAVSwitch()
@@ -596,10 +573,6 @@ Components.UsageConfig.InitUsageConfig()
 profile("Timezones")
 import Components.Timezones
 Components.Timezones.InitTimeZones()
-
-profile("Init:DebugLogCheck")
-import Screens.LogManager
-Screens.LogManager.AutoLogManager()
 
 profile("keymapparser")
 import keymapparser
@@ -637,11 +610,6 @@ Screens.Ci.InitCiConfig()
 
 profile("RcModel")
 import Components.RcModel
-
-profile("EpgCacheSched")
-import Components.EpgLoadSave
-Components.EpgLoadSave.EpgCacheSaveCheck()
-Components.EpgLoadSave.EpgCacheLoadCheck()
 
 #from enigma import dump_malloc_stats
 #t = eTimer()
