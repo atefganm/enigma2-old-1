@@ -307,7 +307,6 @@ class Session:
 
 	def openWithCallback(self, callback, screen, *arguments, **kwargs):
 		dlg = self.open(screen, *arguments, **kwargs)
-		if dlg != 'config.crash.bsodpython.value=True':
 		dlg.callback = callback
 		return dlg
 
