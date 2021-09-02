@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 	printf("DVB_API_VERSION %d DVB_API_VERSION_MINOR %d\n", DVB_API_VERSION, DVB_API_VERSION_MINOR);
 
 	// get enigma2 debug level settings
-	debugLvl = getenv("ENIGMA_DEBUG_LVL") ? atoi(getenv("ENIGMA_DEBUG_LVL")) : 3;
+	debugLvl = getenv("ENIGMA_DEBUG_LVL") ? atoi(getenv("ENIGMA_DEBUG_LVL")) : 4;
 	if (debugLvl < 0)
 		debugLvl = 0;
 	printf("ENIGMA_DEBUG_LVL=%d\n", debugLvl);
@@ -355,7 +355,7 @@ const char *getBoxType()
 void dump_malloc_stats(void)
 {
 #ifdef __GLIBC__
-	struct mallinfo mi = mallinfo();
+	struct mallinfo2 mi = mallinfo2();
 	eDebug("MALLOC: %d total", mi.uordblks);
 #else
 	eDebug("MALLOC: info not exposed");

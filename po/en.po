@@ -2,7 +2,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: enigma2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2021-08-27 05:57+0200\n"
+"POT-Creation-Date: 2021-08-17 23:01+0300\n"
 "PO-Revision-Date: \n"
 "Last-Translator: satdreamgr\n"
 "Language-Team: \n"
@@ -117,6 +117,16 @@ msgstr " updates available."
 #, python-format
 msgid "%(freespace)s %(percent)s free disk space"
 msgstr "%(freespace)s %(percent)s free disk space"
+
+#. TRANSLATORS: short time representation hour:minute
+#, python-format
+msgid "%(hour)2d:%(min)02d"
+msgstr ""
+
+#. TRANSLATORS: full time representation hour:minute:seconds
+#, python-format
+msgid "%(hour)2d:%(min)02d:%(sec)02d"
+msgstr ""
 
 #, python-format
 msgid "%.0f GB"
@@ -358,6 +368,10 @@ msgid "%s updated package available"
 msgid_plural "%s updated packages available"
 msgstr[0] "%s updated package available"
 msgstr[1] "%s updated packages available"
+
+#, fuzzy, python-format
+msgid "%s%% Autoinstalling %s"
+msgstr "Installing"
 
 #, python-format
 msgid "%s%d min"
@@ -1049,9 +1063,8 @@ msgstr ""
 msgid "Are you sure to reboot to"
 msgstr ""
 
-#. TRANSLATORS: The user is asked to delete all satellite services from a specific orbital position after a configuration change
 #, python-format
-msgid "Are you sure to remove all %s services?"
+msgid "Are you sure to remove all %d.%d%s%s services?"
 msgstr ""
 
 msgid "Are you sure to remove all cable services?"
@@ -1254,10 +1267,6 @@ msgstr "Do you want to do a service scan?"
 
 msgid "Auto scart switching"
 msgstr "Auto scart switching"
-
-#, fuzzy, python-format
-msgid "Autoinstalling %s"
-msgstr "Installing"
 
 #, fuzzy
 msgid "Autoinstalling Completed"
@@ -2840,9 +2849,9 @@ msgstr "Directory %s does not exist."
 msgid "Directory browser"
 msgstr "Directory browser"
 
-#, python-format
-msgid "Directory contains %(file)s and %(subdir)s."
-msgstr "Directory contains %(file)s and %(subdir)s."
+#, fuzzy, python-format
+msgid "Directory contains %s and %s."
+msgstr "Directory contains %d file(s) and %d sub-directories.\n"
 
 msgid "Disable"
 msgstr "Disable"
@@ -3973,10 +3982,6 @@ msgid "G"
 msgstr ""
 
 #, fuzzy
-msgid "GB"
-msgstr "RGB"
-
-#, fuzzy
 msgid "GUI Settings"
 msgstr "Settings"
 
@@ -4997,12 +5002,6 @@ msgstr "Long key press"
 msgid "Longitude"
 msgstr "Longitude"
 
-msgid "Looking for active transponders in the cable network. Please wait..."
-msgstr "Looking for active transponders in the cable network. Please wait..."
-
-msgid "Looking for active transponders in the terrestrial network. Please wait..."
-msgstr "Looking for active transponders in the terrestrial network. Please wait..."
-
 msgid "Loop through from"
 msgstr ""
 
@@ -5015,10 +5014,6 @@ msgstr "Luxembourgish"
 
 msgid "Luxembourgish"
 msgstr "Luxembourgish"
-
-#, fuzzy
-msgid "MB"
-msgstr "B"
 
 msgid "MMC card"
 msgstr "MMC card"
@@ -5751,8 +5746,8 @@ msgid "Not defined"
 msgstr ""
 
 #, python-format
-msgid "Not enough disk space. Please free up some disk space and try again. (%(req)d MB required, %(avail)d MB available)"
-msgstr "Not enough disk space. Please free up some disk space and try again. (%(req)d MB required, %(avail)d MB available)"
+msgid "Not enough disk space. Please free up some disk space and try again. (%d MB required, %d MB available)"
+msgstr "Not enough disk space. Please free up some disk space and try again. (%d MB required, %d MB available)"
 
 msgid "Not tested:"
 msgstr ""
@@ -7631,10 +7626,6 @@ msgstr ""
 
 msgid "Select how you want your receiver to keep the correct time, either from the DVB transponder, or from the internet using NTP. Or use Auto, which will favour using NTP, but will fall back to transponder time when no internet connection is available."
 msgstr ""
-
-#, fuzzy
-msgid "Select image"
-msgstr "Delete file"
 
 msgid "Select input device"
 msgstr "Select input device"
@@ -9756,6 +9747,12 @@ msgstr ""
 
 msgid "True"
 msgstr ""
+
+msgid "Looking for active transponders in the cable network. Please wait..."
+msgstr "Looking for active transponders in the cable network. Please wait..."
+
+msgid "Looking for active transponders in the terrestrial network. Please wait..."
+msgstr "Looking for active transponders in the terrestrial network. Please wait..."
 
 msgid "Trying to download a new packetlist. Please wait..."
 msgstr "Trying to download a new packetlist. Please wait..."
