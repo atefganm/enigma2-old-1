@@ -20,6 +20,8 @@
 #include <dvbsi++/content_identifier_descriptor.h>
 #include <dvbsi++/descriptor_tag.h>
 
+#include <Python.h>
+
 /* Interval between "garbage collect" cycles */
 #define CLEAN_INTERVAL 60000    //  1 min
 
@@ -407,7 +409,7 @@ static pthread_mutex_t cache_lock =
 DEFINE_REF(eEPGCache)
 
 eEPGCache::eEPGCache()
-	:messages(this,1), m_running(false), m_enabledEpgSources(0), cleanTimer(eTimer::create(this)), m_timeQueryRef(nullptr)
+	:messages(this,1, "eEPGCache"), m_running(false), m_enabledEpgSources(0), cleanTimer(eTimer::create(this)), m_timeQueryRef(nullptr)
 {
 	eDebug("[eEPGCache] Initialized EPGCache (wait for setCacheFile call now)");
 
@@ -591,9 +593,8 @@ void eEPGCache::sectionRead(const uint8_t *data, int source, eEPGChannelData *ch
 	int duration;
 
 	time_t TM = parseDVBtime((const uint8_t*)eit_event + 2);
-	time_t now = ::time(0) - historySeconds;
+	time_t now = ::time(0);
 
-	// Set a flag in the channel to signify that the source is available
 	if ( TM != 3599 && TM > -1 && channel)
 		channel->haveData |= source;
 
@@ -616,10 +617,11 @@ void eEPGCache::sectionRead(const uint8_t *data, int source, eEPGChannelData *ch
 		if (m_it != onid_blacklist.end())
 			goto next;
 
-		if ((TM != 3599) &&		// NVOD Service
-		     	(now <= (TM+duration)) &&	// skip old events
-		     	(TM < static_cast<time_t>((now+4*maxdays*24*60*60))) &&	// maxdays for EPG - no more than 4 weeks in future
-		     	((onid != 1714) || (duration != (24*3600-1))))	// PlatformaHD invalid event
+		if ( (TM != 3599) &&		// NVOD Service
+		     (now <= (TM+duration)) &&	// skip old events
+		     (TM < (now+4*maxdays*24*60*60)) &&	// maxdays for EPG - no more than 4 weeks in future
+		     ( (onid != 1714) || (duration != (24*3600-1)) )	// PlatformaHD invalid event
+		   )
 		{
 			uint16_t event_id = eit_event->getEventId();
 			eventData *evt = 0;
@@ -854,6 +856,7 @@ void eEPGCache::flushEPG(const uniqueEPGKey & s, bool lock) // lock only affects
 				else
 					++it;
 			}
+
                         singleLock l(last_channel_update_lock);
                         for (ChannelMap::const_iterator it(m_knownChannels.begin
 ()); it != m_knownChannels.end(); ++it)
@@ -886,7 +889,6 @@ void eEPGCache::flushEPG(const uniqueEPGKey & s, bool lock) // lock only affects
  *
  * @return void
  */
-
 void eEPGCache::cleanLoop()
 {
 	{ /* scope for cache lock */
@@ -1152,6 +1154,7 @@ void eEPGCache::save()
 		// only save epg.dat if it is not empty
 		if (eventData::CacheSize < 1)
 			return;
+
 		std::vector<char> vEPGDAT(m_filename.begin(), m_filename.end());
 		vEPGDAT.push_back('\0');
 		const char* EPGDAT = &vEPGDAT[0];
@@ -1267,7 +1270,6 @@ void eEPGCache::save()
 
 /** @copydoc eEPGCache::lookupEventTime
  */
-
 RESULT eEPGCache::lookupEventTime(const eServiceReference &service, time_t t, const eventData *&result, int direction)
 {
 	uniqueEPGKey key(handleGroup(service));
@@ -1347,6 +1349,8 @@ RESULT eEPGCache::lookupEventTime(const eServiceReference &service, time_t t, Ev
 	return ret;
 }
 
+/** @copydoc eEPGCache::lookupEventTime
+ */
 RESULT eEPGCache::lookupEventTime(const eServiceReference &service, time_t t, ePtr<eServiceEvent> &result, int direction)
 {
 	singleLock s(cache_lock);
@@ -1725,7 +1729,11 @@ int handleEvent(eServiceEvent *ptr, ePyObject dest_list, const char* argstring, 
 PyObject *eEPGCache::lookupEvent(ePyObject list, ePyObject convertFunc)
 {
 	ePyObject convertFuncArgs;
+#if PY_MAJOR_VERSION < 3
 	int argcount=0;
+#else
+	ssize_t argcount=0;
+#endif
 	const char *argstring=NULL;
 	if (!PyList_Check(list))
 	{
@@ -2185,7 +2193,11 @@ unsigned int eEPGCache::getEpgmaxdays()
 
 static const char* getStringFromPython(ePyObject obj)
 {
+#if PY_MAJOR_VERSION < 3
 	char *result = 0;
+#else
+	const char *result = 0;
+#endif
 	if (PyString_Check(obj))
 	{
 		result = PyString_AS_STRING(obj);
@@ -2193,6 +2205,8 @@ static const char* getStringFromPython(ePyObject obj)
 	return result;
 }
 
+/** @copydoc eEPGCache::importEvents
+ */
 void eEPGCache::importEvent(ePyObject serviceReference, ePyObject list)
 {
 	importEvents(serviceReference, list);
@@ -2225,7 +2239,11 @@ void eEPGCache::importEvents(ePyObject serviceReferences, ePyObject list)
 
 	if (PyString_Check(serviceReferences))
 	{
+#if PY_MAJOR_VERSION < 3
 		char *refstr;
+#else
+		const char *refstr;
+#endif
 		refstr = PyString_AS_STRING(serviceReferences);
 	        if (!refstr)
 	        {
@@ -2254,7 +2272,11 @@ void eEPGCache::importEvents(ePyObject serviceReferences, ePyObject list)
 			PyObject* item = PyList_GET_ITEM(serviceReferences, i);
 			if (PyString_Check(item))
 			{
+#if PY_MAJOR_VERSION < 3
 				char *refstr;
+#else
+				const char *refstr;
+#endif
 				refstr = PyString_AS_STRING(item);
 				if (!refstr)
 				{
@@ -2375,8 +2397,13 @@ PyObject *eEPGCache::search(ePyObject arg)
 	std::deque<uint32_t> descr;
 	int eventid = -1;
 	const char *argstring=0;
+#if PY_MAJOR_VERSION < 3
 	char *refstr=0;
 	int argcount=0;
+#else
+	const char *refstr=0;
+	ssize_t argcount=0;
+#endif
 	int querytype=-1;
 	bool needServiceEvent=false;
 	int maxmatches=0;
@@ -2391,12 +2418,12 @@ PyObject *eEPGCache::search(ePyObject arg)
 			ePyObject obj = PyTuple_GET_ITEM(arg,0);
 			if (PyString_Check(obj))
 			{
-#if PY_VERSION_HEX < 0x02060000
-				argcount = PyString_GET_SIZE(obj);
-#else
+#if PY_MAJOR_VERSION < 3
 				argcount = PyString_Size(obj);
-#endif
 				argstring = PyString_AS_STRING(obj);
+#else
+				argstring = PyUnicode_AsUTF8AndSize(obj, &argcount);
+#endif
 				for (int i=0; i < argcount; ++i)
 					switch(argstring[i])
 					{
@@ -2438,7 +2465,11 @@ PyObject *eEPGCache::search(ePyObject arg)
 				ePyObject obj = PyTuple_GET_ITEM(arg, 3);
 				if (PyString_Check(obj))
 				{
+#if PY_MAJOR_VERSION < 3
 					refstr = PyString_AS_STRING(obj);
+#else
+					const char *refstr = PyString_AS_STRING(obj);
+#endif
 					eServiceReferenceDVB ref(refstr);
 					if (ref.valid())
 					{
@@ -2492,10 +2523,10 @@ PyObject *eEPGCache::search(ePyObject arg)
 				{
 					int casetype = PyLong_AsLong(PyTuple_GET_ITEM(arg, 4));
 					const char *str = PyString_AS_STRING(obj);
-#if PY_VERSION_HEX < 0x02060000
-					int strlen = PyString_GET_SIZE(obj);
-#else
+#if PY_MAJOR_VERSION < 3
 					int strlen = PyString_Size(obj);
+#else
+					int strlen = PyBytes_Size(obj);
 #endif
 					switch (querytype)
 					{
@@ -2528,7 +2559,11 @@ PyObject *eEPGCache::search(ePyObject arg)
 							it != eventData::descriptors.end(); ++it)
 						{
 							uint8_t *data = it->second.data;
+#if PY_MAJOR_VERSION < 3
 							int textlen = 0;
+#else
+							ssize_t textlen = 0;
+#endif
 							const char *textptr = NULL;
 							if ( data[0] == SHORT_EVENT_DESCRIPTOR && querytype > 0 && querytype < 5 )
 							{
