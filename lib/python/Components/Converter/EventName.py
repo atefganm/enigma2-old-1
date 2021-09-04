@@ -1,7 +1,8 @@
 from Components.Converter.Converter import Converter
 from Components.Element import cached
 from Components.Converter.genre import getGenreStringSub
-from time import localtime, mktime, strftime
+from Components.config import config
+from Components.UsageConfig import dropEPGNewLines, replaceEPGSeparator
 
 
 class EventName(Converter, object):
@@ -110,16 +111,16 @@ class EventName(Converter, object):
 		elif self.type == self.NAME_NEXT:
 			return pgettext("now/next: 'next' event label", "Next") + ": " + event.getEventName()
 		elif self.type == self.SHORT_DESCRIPTION:
-			return event.getShortDescription()
+			return dropEPGNewLines(event.getShortDescription())
 		elif self.type == self.EXTENDED_DESCRIPTION:
-			return event.getExtendedDescription() or event.getShortDescription()
+			return dropEPGNewLines(event.getExtendedDescription()) or dropEPGNewLines(event.getShortDescription())
 		elif self.type == self.FULL_DESCRIPTION:
-			description = event.getShortDescription()
-			extended = event.getExtendedDescription()
+			description = dropEPGNewLines(event.getShortDescription())
+			extended = dropEPGNewLines(event.getExtendedDescription().rstrip())
 			if description and extended:
 				if description.replace('\n', '') == extended.replace('\n', ''):
 					return extended
-				description += '\n'
+				description += replaceEPGSeparator(config.epg.fulldescription_separator.value)
 			return description + extended
 		elif self.type == self.ID:
 			return str(event.getEventId())
@@ -130,11 +131,10 @@ class EventName(Converter, object):
 		elif self.type in (self.PDCTIME, self.PDCTIMESHORT):
 			pil = event.getPdcPil()
 			if pil:
-				begin = localtime(event.getBeginTime())
-				start = localtime(mktime([begin.tm_year, (pil & 0x7800) >> 11, (pil & 0xF8000) >> 15, (pil & 0x7C0) >> 6, (pil & 0x3F), 0, begin.tm_wday, begin.tm_yday, begin.tm_isdst]))
 				if self.type == self.PDCTIMESHORT:
-					return strftime(config.usage.time.short.value, start)
-				return strftime(config.usage.date.short.value + " " + config.usage.time.short.value, start)
+					return _("%02d:%02d") % ((pil & 0x7C0) >> 6, (pil & 0x3F))
+				return _("%d.%02d. %02d:%02d") % ((pil & 0xF8000) >> 15, (pil & 0x7800) >> 11, (pil & 0x7C0) >> 6, (pil & 0x3F))
+			return ""
 		elif self.type == self.ISRUNNINGSTATUS:
 			if event.getPdcPil():
 				running_status = event.getRunningStatus()

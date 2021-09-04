@@ -5,7 +5,6 @@ from socket import *
 from Components.Console import Console
 from Components.PluginComponent import plugins
 from Plugins.Plugin import PluginDescriptor
-from Components.config import config
 
 
 class Network:
@@ -116,21 +115,10 @@ class Network:
 		self.writeNameserverConfig()
 
 	def writeNameserverConfig(self):
-		try:
-			Console().ePopen('rm -f /etc/resolv.conf')
-			fp = open('/etc/resolv.conf', 'w')
-			for nameserver in self.nameservers:
-				fp.write("nameserver %d.%d.%d.%d\n" % tuple(nameserver))
-			fp.close()
-			if config.usage.dns.value.lower() not in ("dhcp-router", "custom"):
-				Console().ePopen('rm -f /etc/enigma2/nameserversdns.conf')
-				fp = open('/etc/enigma2/nameserversdns.conf', 'w')
-				for nameserver in self.nameservers:
-					fp.write("nameserver %d.%d.%d.%d\n" % tuple(nameserver))
-				fp.close()
-			#self.restartNetwork()
-		except:
-			print "[Network] resolv.conf or nameserversdns.conf - writing failed"
+		fp = file('/etc/resolv.conf', 'w')
+		for nameserver in self.nameservers:
+			fp.write("nameserver %d.%d.%d.%d\n" % tuple(nameserver))
+		fp.close()
 
 	def loadNetworkConfig(self, iface, callback=None):
 		interfaces = []
@@ -184,8 +172,6 @@ class Network:
 			self.configuredNetworkAdapters = self.configuredInterfaces
 			# load ns only once
 			self.loadNameserverConfig()
-			if config.usage.dns.value != "dhcp-router":
-				self.writeNameserverConfig()
 			print "read configured interface:", ifaces
 			# remove any password before info is printed to the debug log
 			safe_ifaces = self.ifaces.copy()
@@ -205,15 +191,12 @@ class Network:
 
 		resolv = []
 		try:
-			if config.usage.dns.value.lower() in ("dhcp-router", "custom"):
-				fp = open('/etc/resolv.conf', 'r')
-			else:
-				fp = open('/etc/enigma2/nameserversdns.conf', 'r')
+			fp = file('/etc/resolv.conf', 'r')
 			resolv = fp.readlines()
 			fp.close()
 			self.nameservers = []
 		except:
-			print "[Network] resolv.conf or nameserversdns.conf - opening failed"
+			print "[Network.py] resolv.conf - opening failed"
 
 		for line in resolv:
 			if self.regExpMatch(nameserverPattern, line) is not None:
