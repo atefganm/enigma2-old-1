@@ -41,11 +41,6 @@ def InitUsageConfig():
 	config.usage.record_indicator_mode = ConfigSelection(default="0", choices=[("0", _("None")), ("1", _("Left from servicename")), ("2", _("Right from servicename")), ("3", _("Red colored"))])
 	config.usage.record_indicator_mode.addNotifier(refreshServiceList)
 
-	config.usage.virtualkeyBoard_style = ConfigSelection(default="new", choices=[
-		("new", _("New style")),
-		("e2", _("Enigma2 default"))
-	])
-
 	choicelist = [("-1", _("Disable"))]
 	for i in range(0, 1300, 100):
 		choicelist.append((str(i), ngettext("%d pixel wide", "%d pixels wide", i) % i))
@@ -291,11 +286,6 @@ def InitUsageConfig():
 
 	config.usage.swap_snr_on_osd = ConfigYesNo(default=False)
 
-	config.usage.frontled_color = ConfigSelection(default = "2", choices = [("0", _("Off")), ("1", _("Blue")), ("2", _("Red")), ("3", _("Blinking blue")), ("4", _("Blinking red"))])
-	config.usage.frontledrec_color = ConfigSelection(default = "3", choices = [("0", _("Off")), ("1", _("Blue")), ("2", _("Red")), ("3", _("Blinking blue")), ("4", _("Blinking red"))])
-	config.usage.frontledstdby_color = ConfigSelection(default = "0", choices = [("0", _("Off")), ("1", _("Blue")), ("2", _("Red")), ("3", _("Blinking blue")), ("4", _("Blinking red"))])
-	config.usage.frontledrecstdby_color = ConfigSelection(default = "3", choices = [("0", _("Off")), ("1", _("Blue")), ("2", _("Red")), ("3", _("Blinking blue")), ("4", _("Blinking red"))])
-
 	def SpinnerOnOffChanged(configElement):
 		setSpinnerOnOff(int(configElement.value))
 	config.usage.show_spinner.addNotifier(SpinnerOnOffChanged)
@@ -438,6 +428,11 @@ def InitUsageConfig():
 		eEPGCache.getInstance().setEpgHistorySeconds(config.epg.histminutes.getValue() * 60)
 	config.epg.histminutes.addNotifier(EpgHistorySecondsChanged)
 
+	choicelist = [("newline", _("new line")), ("2newlines", _("2 new lines")), ("space", _("space")), ("dot", " . "), ("dash", " - "), ("asterisk", " * "), ("nothing", _("nothing"))]
+	config.epg.fulldescription_separator = ConfigSelection(default="2newlines", choices=choicelist)
+	choicelist = [("no", _("no")), ("nothing", _("omit")), ("space", _("space")), ("dot", ". "), ("dash", " - "), ("asterisk", " * "), ("hashtag", " # ")]
+	config.epg.replace_newlines = ConfigSelection(default="no", choices=choicelist)
+
 	def setHDDStandby(configElement):
 		for hdd in harddiskmanager.HDDList():
 			hdd[1].setIdleTime(int(configElement.value))
@@ -509,12 +504,6 @@ def InitUsageConfig():
 			("mute", _("Black screen")), ("hold", _("Hold screen")), ("mutetilllock", _("Black screen till locked")), ("holdtilllock", _("Hold till locked"))])
 		config.misc.zapmode.addNotifier(setZapmode, immediate_feedback=False)
 
-	if not SystemInfo["ZapMode"] and os.path.exists("/proc/stb/info/model"):
-		def setZapmodeDM(el):
-			print('[UsageConfig] >>> zapmodeDM')
-		config.misc.zapmodeDM = ConfigSelection(default="black", choices=[("black", _("Black screen")), ("hold", _("Hold screen"))])
-		config.misc.zapmodeDM.addNotifier(setZapmodeDM, immediate_feedback = False)
-
 	if SystemInfo["VFD_scroll_repeats"]:
 		def scroll_repeats(el):
 			open(SystemInfo["VFD_scroll_repeats"], "w").write(el.value)
@@ -561,15 +550,15 @@ def InitUsageConfig():
 		def setHaveColorspace(configElement):
 			open(SystemInfo["HasColorspace"], "w").write(configElement.value)
 		if SystemInfo["HasColorspaceSimple"]:
-			config.av.hdmicolorspace = ConfigSelection(default="Edid(Auto)", choices={"Edid(Auto)": _("Auto"), "Hdmi_Rgb": _("RGB"), "444": _("YCbCr444"), "422": _("YCbCr422"), "420": _("YCbCr420")})
+			config.av.hdmicolorspace = ConfigSelection(default="Edid(Auto)", choices={"Edid(Auto)": _("auto"), "Hdmi_Rgb": "RGB", "444": "YCbCr 4:4:4", "422": "YCbCr 4:2:2", "420": "YCbCr 4:2:0"})
 		else:
-			config.av.hdmicolorspace = ConfigSelection(default="auto", choices={"auto": _("auto"), "rgb": _("rgb"), "420": _("420"), "422": _("422"), "444": _("444")})
+			config.av.hdmicolorspace = ConfigSelection(default="auto", choices={"auto": _("auto"), "rgb": "RGB", "420": "4:2:0", "422": "4:2:2", "444": "4:4:4"})
 		config.av.hdmicolorspace.addNotifier(setHaveColorspace)
 
 	if SystemInfo["HasColordepth"]:
 		def setHaveColordepth(configElement):
 			open(SystemInfo["HasColordepth"], "w").write(configElement.value)
-		config.av.hdmicolordepth = ConfigSelection(default="auto", choices={"auto": _("Auto"), "8bit": _("8bit"), "10bit": _("10bit"), "12bit": _("12bit")})
+		config.av.hdmicolordepth = ConfigSelection(default="auto", choices={"auto": _("auto"), "8bit": "8bit", "10bit": "10bit", "12bit": "12bit"})
 		config.av.hdmicolordepth.addNotifier(setHaveColordepth)
 
 	if SystemInfo["HasHDMIpreemphasis"]:
@@ -581,13 +570,13 @@ def InitUsageConfig():
 	if SystemInfo["HasColorimetry"]:
 		def setColorimetry(configElement):
 			open(SystemInfo["HasColorimetry"], "w").write(configElement.value)
-		config.av.hdmicolorimetry = ConfigSelection(default="auto", choices=[("auto", _("Auto")), ("bt2020ncl", _("BT 2020 NCL")), ("bt2020cl", _("BT 2020 CL")), ("bt709", _("BT 709"))])
+		config.av.hdmicolorimetry = ConfigSelection(default="auto", choices=[("auto", _("auto")), ("bt2020ncl", "BT 2020 NCL"), ("bt2020cl", "BT 2020 CL"), ("bt709", "BT 709")])
 		config.av.hdmicolorimetry.addNotifier(setColorimetry)
 
 	if SystemInfo["HasHdrType"]:
 		def setHdmiHdrType(configElement):
 			open(SystemInfo["HasHdrType"], "w").write(configElement.value)
-		config.av.hdmihdrtype = ConfigSelection(default="auto", choices={"auto": _("Auto"), "none": _("SDR"), "hdr10": _("HDR10"), "hlg": _("HLG"), "dolby": _("Dolby")})
+		config.av.hdmihdrtype = ConfigSelection(default="auto", choices={"auto": _("auto"), "none": "SDR", "hdr10": "HDR10", "hlg": "HLG", "dolby": "Dolby Vision"})
 		config.av.hdmihdrtype.addNotifier(setHdmiHdrType)
 
 	if SystemInfo["HDRSupport"]:
@@ -932,3 +921,11 @@ def preferredTunerChoicesUpdate(update=False):
 	SystemInfo["DVB-T_priority_tuner_available"] = len(dvbt_nims) > 3 and any(len(i) > 2 for i in (dvbs_nims, dvbc_nims, atsc_nims))
 	SystemInfo["DVB-C_priority_tuner_available"] = len(dvbc_nims) > 3 and any(len(i) > 2 for i in (dvbs_nims, dvbt_nims, atsc_nims))
 	SystemInfo["ATSC_priority_tuner_available"] = len(atsc_nims) > 3 and any(len(i) > 2 for i in (dvbs_nims, dvbc_nims, dvbt_nims))
+
+def dropEPGNewLines(text):
+	if config.epg.replace_newlines.value != "no":
+		text = text.replace('\x0a', replaceEPGSeparator(config.epg.replace_newlines.value))
+	return text
+
+def replaceEPGSeparator(code):
+	return {"newline": "\n", "2newlines": "\n\n", "space": " ", "dash": " - ", "dot": " . ", "asterisk": " * ", "hashtag": " # ", "nothing": ""}.get(code)
