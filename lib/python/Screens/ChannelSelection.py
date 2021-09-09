@@ -1,3 +1,5 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
 from Tools.Profile import profile
 
 from Screen import Screen
